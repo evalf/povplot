@@ -1,0 +1,5 @@
+[run]
+source = povplot
+
+[html]
+directory = build/coverage/
