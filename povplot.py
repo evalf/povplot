@@ -150,6 +150,23 @@ _module_povplot = '''\
     {% endif %}
   {% endcall %}
 {% endmacro %}
+{% macro lines(vertices, lines, radius, color='srgb 0') %}
+  union {
+    {% for line in lines -%}
+      sphere_sweep {
+        {%- if len(line) > 3 %} cubic_spline {% else %} linear_spline {% endif -%}
+        {{- len(line) -}}
+        {%- for i in line -%}
+          , {{ vertices[i] | as_vector }} {{ radius }}
+        {%- endfor -%}
+      }
+    {% endfor %}
+    texture {
+      pigment { color {{ color }} }
+      finish { ambient 0.5 diffuse 0.5 emission 0 }
+    }
+  }
+{% endmacro %}
 '''
 
 def get_env():
@@ -160,7 +177,7 @@ def get_env():
     cmap_to_pigment=_filter_cmap_to_pigment,
     equivalent_focal_length_to_angle=_filter_equivalent_focal_length_to_angle)
   env.tests.update(None_or_undefined=_test_None_or_undefined)
-  env.globals.update(get_norm=_get_norm)
+  env.globals.update(get_norm=_get_norm, len=len)
   env.globals.update(povplot=env.from_string(_module_povplot))
   return env
 
@@ -287,6 +304,19 @@ def render(dst, *, scene, size, antialias=False, transparent=False, scene_args=N
       :type vmax: :class:`float`, optional
       :param vmax: The maximum value of the normalization.
 
+  .. function:: povplot.lines(vertices, lines, radius, color='srgb 0')
+
+      Render lines with a uniform color.
+
+      :type vertices: :class:`numpy.ndarray` with shape ``(nverts,3)``
+      :param vertices: The vertices of the triangulation.
+      :type lines: :class:`numpy.ndarray` with shape ``(nlines,2)`` and dtype :class:`int`
+      :param lines: The indices of vertices defining the lines.
+      :type radius: :class:`float`
+      :param radius: The radius of the lines.
+      :type color: :class:`str`, default: ``'srgb 0'``
+      :param color: The color of the lines.  See `color expressions <http://www.povray.org/documentation/3.7.0/r3_3.html#r3_3_1_7>`_.
+
   Parameters
   ----------
   dst: :class:`str`, :class:`os.PathLike` or :class:`io.IOBase`
@@ -335,7 +365,7 @@ def render(dst, *, scene, size, antialias=False, transparent=False, scene_args=N
     if p_povray.returncode:
       raise PovrayError(p_povray.returncode, p_povray.stderr.decode(errors='ignore'), template, scene_args)
 
-def render_tripcolor(dst, *, size, vertices, triangles, values, cmap=None, norm=None, vmin=None, vmax=None, normals=None, camera=None, mm_per_unit=10, antialias=False, transparent=False, nprocs=None, imgtype=None):
+def render_tripcolor(dst, *, size, vertices, triangles, values, lines=None, line_radius=None, line_color=None, cmap=None, norm=None, vmin=None, vmax=None, normals=None, camera=None, mm_per_unit=10, antialias=False, transparent=False, nprocs=None, imgtype=None):
   '''Render a triangular grid with Povray.
 
   Parameters
@@ -421,9 +451,17 @@ def render_tripcolor(dst, *, size, vertices, triangles, values, cmap=None, norm=
     {{ povplot.tripcolor(**tripcolor) }}
   '''
 
+  if lines is not None:
+    assert line_radius
+    scene += '{{ povplot.lines(**lines) }}'
+    line_args = dict(vertices=vertices, lines=lines, radius=line_radius)
+    if line_color:
+      line_args['color'] = line_color
+    scene_args['lines'] = line_args
+
   render(dst, imgtype=imgtype, size=size, antialias=antialias, transparent=transparent, nprocs=nprocs, scene_args=scene_args, scene=scene)
 
-def tripcolor(ax, *, vertices, triangles, values, normals=None, cmap=None, norm=None, vmin=None, vmax=None, camera=None, mm_per_unit=10, antialias=False, transparent=False, nprocs=None, hide_frame=False, hide_ticks=True):
+def tripcolor(ax, *, vertices, triangles, values, lines=None, line_radius=None, line_color=None, normals=None, cmap=None, norm=None, vmin=None, vmax=None, camera=None, mm_per_unit=10, antialias=False, transparent=False, nprocs=None, hide_frame=False, hide_ticks=True):
   '''Plot a triangular grid in a matplotlib axes.
 
   Parameters
@@ -493,9 +531,10 @@ def tripcolor(ax, *, vertices, triangles, values, normals=None, cmap=None, norm=
   '''
 
   im = AxesTripcolor(
-    vertices=vertices, triangles=triangles, values=values, camera=camera,
-    antialias=antialias, transparent=transparent, nprocs=nprocs, norm=norm,
-    cmap=cmap, mm_per_unit=mm_per_unit)
+    vertices=vertices, triangles=triangles, values=values, lines=lines,
+    line_radius=line_radius, line_color=line_color, camera=camera, antialias=antialias,
+    transparent=transparent, nprocs=nprocs, norm=norm, cmap=cmap,
+    mm_per_unit=mm_per_unit)
   if vmin is not None or vmax is not None:
     im.set_clim(vmin, vmax)
   else:
@@ -571,12 +610,15 @@ class AxesTripcolor(matplotlib.artist.Artist, matplotlib.cm.ScalarMappable):
       Number of threads Povray may use to render the image.
   '''
 
-  def __init__(self, *, vertices, triangles, values, normals=None, camera=None, antialias=False, transparent=False, nprocs=None, cmap=None, norm=None, mm_per_unit=10):
+  def __init__(self, *, vertices, triangles, values, lines=None, line_radius=None, line_color=None, normals=None, camera=None, antialias=False, transparent=False, nprocs=None, cmap=None, norm=None, mm_per_unit=10):
     matplotlib.artist.Artist.__init__(self)
     matplotlib.cm.ScalarMappable.__init__(self, cmap=cmap, norm=norm)
     self._vertices = vertices
     self._triangles = triangles
     self._normals = normals
+    self._lines = lines
+    self._line_radius = line_radius
+    self._line_color = line_color
     self._camera = dict(camera or {})
     self._mm_per_unit = mm_per_unit
     self._antialias = antialias
@@ -592,11 +634,14 @@ class AxesTripcolor(matplotlib.artist.Artist, matplotlib.cm.ScalarMappable):
 
     with tempfile.TemporaryFile('w+b') as f_im:
       render_tripcolor(
-        f_im, imgtype='png', size=shape,
-        vertices=self._vertices, triangles=self._triangles, normals=self._normals,
-        values=self.get_array(), norm=self.norm, cmap=self.cmap,
-        camera=self._camera, transparent=self._transparent, antialias=self._antialias,
-        nprocs=self._nprocs, mm_per_unit=self._mm_per_unit)
+        f_im, imgtype='png', size=shape, vertices=self._vertices,
+        triangles=self._triangles, normals=self._normals,
+        values=self.get_array(), lines=self._lines,
+        line_radius=self._line_radius, line_color=self._line_color,
+        norm=self.norm, cmap=self.cmap,
+        camera=self._camera, transparent=self._transparent,
+        antialias=self._antialias, nprocs=self._nprocs,
+        mm_per_unit=self._mm_per_unit)
       f_im.flush()
       f_im.seek(0)
       im = (matplotlib.image.imread(f_im, format='png')*255).round().astype(numpy.uint8)
