@@ -24,8 +24,8 @@ povplot
 
 A library for rendering triangular grids with Povray.
 
-The functions :func:`tripcolor` (for matplotlib figures) and
-:func:`render_tripcolor` (standalone) render a 3D triangular grid using Povray,
+The functions :func:`triplot` (for matplotlib figures) and
+:func:`render_triplot` (standalone) render a 3D triangular grid using Povray,
 with an interface similar to :meth:`matplotlib.axes.Axes.tripcolor`.  If you
 want more control over the scene, use :func:`render` (standalone).
 '''
@@ -365,7 +365,7 @@ def render(dst, *, scene, size, antialias=False, transparent=False, scene_args=N
     if p_povray.returncode:
       raise PovrayError(p_povray.returncode, p_povray.stderr.decode(errors='ignore'), template, scene_args)
 
-def render_tripcolor(dst, *, size, vertices, triangles, values, lines=None, line_radius=None, line_color=None, cmap=None, norm=None, vmin=None, vmax=None, normals=None, camera=None, mm_per_unit=10, antialias=False, transparent=False, nprocs=None, imgtype=None):
+def render_triplot(dst, *, size, vertices, triangles, values, lines=None, line_radius=None, line_color=None, cmap=None, norm=None, vmin=None, vmax=None, normals=None, camera=None, mm_per_unit=10, antialias=False, transparent=False, nprocs=None, imgtype=None):
   '''Render a triangular grid with Povray.
 
   Parameters
@@ -421,11 +421,11 @@ def render_tripcolor(dst, *, size, vertices, triangles, values, lines=None, line
   The following example renders a unit square, subdivided in two triangles, with a
   linear color gradient:
 
-  >>> render_tripcolor('example.png',
-  ...                  vertices=[[0,0,0],[0,1,0],[1,0,0],[1,1,0]],
-  ...                  triangles=[[0,1,2],[1,3,2]],
-  ...                  values=[0,1,2,3],
-  ...                  size=(800,600))
+  >>> render_triplot('example.png',
+  ...                vertices=[[0,0,0],[0,1,0],[1,0,0],[1,1,0]],
+  ...                triangles=[[0,1,2],[1,3,2]],
+  ...                values=[0,1,2,3],
+  ...                size=(800,600))
   '''
 
   tripcolor = dict(vertices=vertices, triangles=triangles, norm=norm, vmin=vmin, vmax=vmax, cmap=cmap, values=values)
@@ -461,7 +461,7 @@ def render_tripcolor(dst, *, size, vertices, triangles, values, lines=None, line
 
   render(dst, imgtype=imgtype, size=size, antialias=antialias, transparent=transparent, nprocs=nprocs, scene_args=scene_args, scene=scene)
 
-def tripcolor(ax, *, vertices, triangles, values, lines=None, line_radius=None, line_color=None, normals=None, cmap=None, norm=None, vmin=None, vmax=None, camera=None, mm_per_unit=10, antialias=False, transparent=False, nprocs=None, hide_frame=False, hide_ticks=True):
+def triplot(ax, *, vertices, triangles, values, lines=None, line_radius=None, line_color=None, normals=None, cmap=None, norm=None, vmin=None, vmax=None, camera=None, mm_per_unit=10, antialias=False, transparent=False, nprocs=None, hide_frame=False, hide_ticks=True):
   '''Plot a triangular grid in a matplotlib axes.
 
   Parameters
@@ -506,7 +506,7 @@ def tripcolor(ax, *, vertices, triangles, values, lines=None, line_radius=None, 
 
   Returns
   -------
-  tripcolor: :class:`AxesTripcolor`
+  triplot: :class:`AxesTriplot`
       A matplotlib artist and scalar mappable.
 
   Raises
@@ -523,14 +523,14 @@ def tripcolor(ax, *, vertices, triangles, values, lines=None, line_radius=None, 
   >>> import matplotlib.figure
   >>> fig = matplotlib.figure.Figure()
   >>> ax = fig.add_subplot(111)
-  >>> im = tripcolor(ax,
-  ...                vertices=[[0,0,0],[0,1,0],[1,0,0],[1,1,0]],
-  ...                triangles=[[0,1,2],[1,3,2]],
-  ...                values=[0,1,2,3])
+  >>> im = triplot(ax,
+  ...              vertices=[[0,0,0],[0,1,0],[1,0,0],[1,1,0]],
+  ...              triangles=[[0,1,2],[1,3,2]],
+  ...              values=[0,1,2,3])
   >>> fig.colorbar(im, ax=ax)
   '''
 
-  im = AxesTripcolor(
+  im = AxesTriplot(
     vertices=vertices, triangles=triangles, values=values, lines=lines,
     line_radius=line_radius, line_color=line_color, camera=camera, antialias=antialias,
     transparent=transparent, nprocs=nprocs, norm=norm, cmap=cmap,
@@ -577,7 +577,7 @@ def overlay_colorbar(fig, sm, *, colorbar_width=0.2, label_width=0.5, margin=0.2
   fig.colorbar(sm, cax=cax)
   return cax
 
-class AxesTripcolor(matplotlib.artist.Artist, matplotlib.cm.ScalarMappable):
+class AxesTriplot(matplotlib.artist.Artist, matplotlib.cm.ScalarMappable):
   '''A matplotlib artist for rendering a triangular grid with Povray.
 
   Parameters
@@ -633,7 +633,7 @@ class AxesTripcolor(matplotlib.artist.Artist, matplotlib.cm.ScalarMappable):
     shape = bbox[1]-bbox[0]
 
     with tempfile.TemporaryFile('w+b') as f_im:
-      render_tripcolor(
+      render_triplot(
         f_im, imgtype='png', size=shape, vertices=self._vertices,
         triangles=self._triangles, normals=self._normals,
         values=self.get_array(), lines=self._lines,

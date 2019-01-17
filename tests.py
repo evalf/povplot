@@ -64,7 +64,7 @@ class common:
   def test_nprocs(self):
     im = self.render_square(nprocs=2)
 
-class render_tripcolor(unittest.TestCase, common):
+class render_triplot(unittest.TestCase, common):
 
   test_args = dict(vertices=[[-9,-9,50],[-9,9,50],[9,-9,50],[9,9,50]],
                    triangles=[[0,1,2],[1,3,2]], values=[0,1,2,3],
@@ -75,7 +75,7 @@ class render_tripcolor(unittest.TestCase, common):
 
   def render(self, **kwargs):
     with tempfile.TemporaryFile('w+b') as f:
-      povplot.render_tripcolor(f, imgtype='png', **kwargs)
+      povplot.render_triplot(f, imgtype='png', **kwargs)
       f.flush()
       f.seek(0)
       im = (matplotlib.image.imread(f, format='png')*255).round().astype(numpy.uint8)
@@ -88,7 +88,7 @@ class render_tripcolor(unittest.TestCase, common):
       for suffix in suffixes:
         with self.subTest(suffix=suffix):
           with tempfile.NamedTemporaryFile('w+b', suffix=suffix) as f:
-            povplot.render_tripcolor(f, **self.test_args)
+            povplot.render_triplot(f, **self.test_args)
             f.flush()
             f.seek(0)
             self.assertEqual(f.read(len(header)), header)
@@ -96,28 +96,28 @@ class render_tripcolor(unittest.TestCase, common):
   def test_guess_imgtype_unknown(self):
     with tempfile.NamedTemporaryFile('wb', suffix='.unknown') as f:
       with self.assertRaises(ValueError):
-        povplot.render_tripcolor(f, **self.test_args)
+        povplot.render_triplot(f, **self.test_args)
 
   def test_guess_imgtype_no_name(self):
     with io.BytesIO() as f:
       with self.assertRaises(ValueError):
-        povplot.render_tripcolor(f, **self.test_args)
+        povplot.render_triplot(f, **self.test_args)
 
   def test_write_stringio(self):
     with io.BytesIO() as f:
-      povplot.render_tripcolor(f, imgtype='png', **self.test_args)
+      povplot.render_triplot(f, imgtype='png', **self.test_args)
       f.flush()
       f.seek(0)
       self.assertEqual(f.read(len(self.png_header)), self.png_header)
 
   def test_write_str(self):
     with tempfile.NamedTemporaryFile('w+b', suffix='.png') as f:
-      povplot.render_tripcolor(f.name, **self.test_args)
+      povplot.render_triplot(f.name, **self.test_args)
       f.flush()
       f.seek(0)
       self.assertEqual(f.read(len(self.png_header)), self.png_header)
 
-class tripcolor(unittest.TestCase, common):
+class triplot(unittest.TestCase, common):
 
   def render(self, *, size, **kwargs):
     dpi = 100
@@ -127,7 +127,7 @@ class tripcolor(unittest.TestCase, common):
       matplotlib.backends.backend_agg.FigureCanvas(fig) # sets reference via fig.set_canvas
       ax = fig.add_axes([0,0,1,1])
       ax.axis('off')
-      povplot.tripcolor(ax, **kwargs)
+      povplot.triplot(ax, **kwargs)
       savefig_kwargs = dict(facecolor='none', edgecolor='none') if kwargs.get('transparent', False) else {}
       fig.savefig(f, format='png', **savefig_kwargs)
       fig.set_canvas(None) # break circular reference
@@ -153,10 +153,10 @@ class overlay_colorbar(unittest.TestCase):
       fig = matplotlib.figure.Figure()
       matplotlib.backends.backend_agg.FigureCanvas(fig) # sets reference via fig.set_canvas
       ax = fig.add_axes([0,0,1,1])
-      im = povplot.tripcolor(ax,
-                             hide_frame=True,
-                             vertices=[[-9,-9,50],[-9,9,50],[9,-9,50],[9,9,50]],
-                             triangles=[[0,1,2],[1,3,2]], values=[0,1,2,3])
+      im = povplot.triplot(ax,
+                           hide_frame=True,
+                           vertices=[[-9,-9,50],[-9,9,50],[9,-9,50],[9,9,50]],
+                           triangles=[[0,1,2],[1,3,2]], values=[0,1,2,3])
       povplot.overlay_colorbar(fig, im)
       fig.savefig(f, format='png', facecolor='none', edgecolor='none')
       fig.set_canvas(None) # break circular reference
