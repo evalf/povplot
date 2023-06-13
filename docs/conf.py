@@ -20,7 +20,7 @@ project = 'povplot'
 copyright = '2018, Evalf'
 
 with open(os.path.join('..', 'povplot.py')) as f:
-  release = next(filter(None, map(re.compile("^version = '([a-zA-Z0-9.]+)'$").match, f))).group(1)
+  release = next(filter(None, map(re.compile("^__version__ = version = '([a-zA-Z0-9.]+)'$").match, f))).group(1)
 version = re.search('^[0-9]+\\.[0-9]+', release).group(0)
 
 autodoc_member_order = 'bysource'

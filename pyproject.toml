@@ -1,0 +1,22 @@
+[project]
+name = "povplot"
+readme = "README.md"
+authors = [
+    { name = "Evalf", email = "info@evalf.com" },
+]
+requires-python = '~=3.7'
+dependencies = [
+    "jinja2~=3.0",
+    "numpy",
+    "matplotlib",
+]
+dynamic = ["description", "version"]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Multimedia :: Graphics :: 3D Rendering",
+    "Topic :: Scientific/Engineering :: Visualization",
+]
+
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"

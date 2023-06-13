@@ -30,7 +30,7 @@ with an interface similar to :meth:`matplotlib.axes.Axes.tripcolor`.  If you
 want more control over the scene, use :func:`render` (standalone).
 '''
 
-version = '1.0b0'
+__version__ = version = '1.0b0'
 
 import tempfile, subprocess, contextlib, os, io
 import jinja2, numpy, matplotlib.image, matplotlib.colors, matplotlib, matplotlib.artist, matplotlib.patches
