@@ -69,7 +69,7 @@ def _filter_cmap_to_pigment(cmap, direction='x'):
     raise ValueError
   return 'pigment {{ gradient {} color_map {{ {} }} }}'.format(direction, str_cmap)
 
-@jinja2.environmentfilter
+@jinja2.pass_environment
 def _filter_equivalent_focal_length_to_angle(env, focal_length):
   w, h = env.globals['size']
   # Scaling of the resulution such that the diagonal matches a standard 35mm
