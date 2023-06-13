@@ -542,7 +542,7 @@ def triplot(ax, *, vertices, triangles, values, lines=None, line_radius=None, li
     im.set_clim(vmin, vmax)
   else:
     im.autoscale_None()
-  ax.add_image(im)
+  ax.add_artist(im)
   if hide_ticks:
     ax.get_xaxis().set_visible(False)
     ax.get_yaxis().set_visible(False)
