@@ -1,5 +1,5 @@
 import unittest, tempfile, io, collections, pathlib
-import numpy, matplotlib.image, matplotlib.cm, matplotlib.figure, matplotlib.backends.backend_agg
+import numpy, matplotlib.image, matplotlib.figure, matplotlib.backends.backend_agg
 import povplot
 
 class common:
@@ -46,12 +46,12 @@ class common:
 
   def test_cmap_jet(self):
     im = self.render_square(cmap='jet')
-    cmap = matplotlib.cm.get_cmap('jet')
+    cmap = matplotlib.colormaps['jet']
     self.assertLess(abs((im[12,9:-9])-cmap((numpy.arange(18)+0.5)/18)*255).max(), 5)
 
   def test_vmin_vmax(self):
     im = self.render_square(vmin=-1, vmax=3)
-    cmap = matplotlib.cm.get_cmap(None)
+    cmap = matplotlib.colormaps[matplotlib.rcParams['image.cmap']]
     self.assertLess(abs((im[12,9:-9])-cmap((numpy.arange(9,27)+0.5)/36)*255).max(), 5)
 
   def test_auto_camera(self):

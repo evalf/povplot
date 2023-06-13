@@ -33,7 +33,7 @@ want more control over the scene, use :func:`render` (standalone).
 version = '1.0b0'
 
 import tempfile, subprocess, contextlib, os, io
-import jinja2, numpy, matplotlib.image, matplotlib.colors, matplotlib.cm, matplotlib.artist, matplotlib.patches
+import jinja2, numpy, matplotlib.image, matplotlib.colors, matplotlib, matplotlib.artist, matplotlib.patches
 
 def _filter_as_vector(data):
   # Jinja filter to convert a 1d numpy array to a povray vector.
@@ -58,7 +58,10 @@ def _filter_as_vector_list(data, pad_length=0):
 
 def _filter_cmap_to_pigment(cmap, direction='x'):
   # Jinja filter to convert a matplotlib cmap to a povray pigment.
-  cmap = matplotlib.cm.get_cmap(cmap)
+  if isinstance(cmap, str):
+    cmap = matplotlib.colormaps[cmap]
+  elif cmap is None:
+    cmap = matplotlib.colormaps[matplotlib.rcParams['image.cmap']]
   fmt = '[{0:.4f} color srgb<{1[0]:.3f},{1[1]:.3f},{1[2]:.3f}>]'.format
   if isinstance(cmap, matplotlib.colors.ListedColormap):
     str_cmap = ' '.join(map(fmt, numpy.linspace(0, 1, len(cmap.colors)), cmap.colors))
