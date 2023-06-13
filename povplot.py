@@ -146,7 +146,7 @@ _module_povplot = '''\
   {% call mesh2(vertices, triangles, normals, uv=get_norm(norm, vmin, vmax)(values)) %}
     texture {
       {{ cmap | cmap_to_pigment }}
-      finish { ambient 0.5 diffuse 0.5 emission 0 }
+      finish { diffuse albedo 0.7 }
     }
     {% if caller is defined %}
       {{ caller() }}
