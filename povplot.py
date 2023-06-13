@@ -168,6 +168,7 @@ _module_povplot = '''\
       pigment { color {{ color }} }
       finish { ambient 0.5 diffuse 0.5 emission 0 }
     }
+    no_shadow
   }
 {% endmacro %}
 '''
