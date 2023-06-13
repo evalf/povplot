@@ -266,6 +266,27 @@ def render(dst, *, scene, size, antialias=False, transparent=False, scene_args=N
       :type uv: :class:`numpy.ndarray` with shape ``(nverts,2)``, optional
       :param uv: UV-coordinate per vertex.  This can be used for texture mapping.  See `uv mapping <http://www.povray.org/documentation/3.7.0/r3_4.html#r3_4_6_7>`_.
 
+  .. function:: povplot.tripcolor(vertices, triangles, normals=None, values=None, cmap=None, norm=None, vmin=None, vmax=None)
+
+      Render a triangular grid with a matplotlib colormap.
+
+      :type vertices: :class:`numpy.ndarray` with shape ``(nverts,3)``
+      :param vertices: The vertices of the triangulation.
+      :type triangles: :class:`numpy.ndarray` with shape ``(ntriangles,3)`` and dtype :class:`int`
+      :param triangles: The indices of vertices defining the triangles.
+      :type normals: :class:`numpy.ndarray` with shape ``(nverts,3)``, optional
+      :param normals: The outward normals at the vertices.
+      :type values: :class:`numpy.ndarray` with shape ``(nverts,)``, optional
+      :param values: The values of the vertices.  These will be mapped to a color.
+      :type cmap: :class:`str` or :class:`matplotlib.colors.Colormap`, optional
+      :param cmap: The name or an instance of a matplotlib colormap to be applied to the normalized ``values``.
+      :type norm: :class:`matplotlib.colors.Normalize`, optional
+      :param norm: The normalization of ``values`` to the range [0,1], applied before colormapping.
+      :type vmin: :class:`float`, optional
+      :param vmin: The minimum value of the normalization.
+      :type vmax: :class:`float`, optional
+      :param vmax: The maximum value of the normalization.
+
   Parameters
   ----------
   dst: :class:`str`, :class:`os.PathLike` or :class:`io.IOBase`
